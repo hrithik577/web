@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>{{ shop.name }} Statistics</h1>
+
+    <!-- Daily Stats -->
+    <h3>Today's Stats (May 2, 2025)</h3>
+    <p>Total Pages: {{ daily_chart_data.total_pages }}</p>
+    <p>Black & White Pages: {{ daily_chart_data.bw_pages }}</p>
+    <p>Color Pages: {{ daily_chart_data.color_pages }}</p>
+    <p>Total Earnings: ₹{{ daily_chart_data.total_earnings }}</p>
+    <canvas id="dailyChart" width="200" height="200"></canvas>
+
+    <!-- Monthly Stats -->
+    <h3>Monthly Stats (May 2025)</h3>
+    <p>Total Pages: {{ monthly_chart_data.total_pages }}</p>
+    <p>Black & White Pages: {{ monthly_chart_data.bw_pages }}</p>
+    <p>Color Pages: {{ monthly_chart_data.color_pages }}</p>
+    <p>Total Earnings: ₹{{ monthly_chart_data.total_earnings }}</p>
+    <canvas id="monthlyChart" width="200" height="200"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Daily Chart
+        const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+        new Chart(dailyCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Black & White', 'Color'],
+                datasets: [{
+                    label: 'Pages Printed Today',
+                    data: [{{ daily_chart_data.bw_pages }}, {{ daily_chart_data.color_pages }}],
+                    backgroundColor: ['#000000', '#FF0000'],
+                    borderColor: ['#000000', '#FF0000'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Pages Printed Today'
+                    }
+                }
+            }
+        });
+
+        // Monthly Chart
+        const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+        new Chart(monthlyCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Black & White', 'Color'],
+                datasets: [{
+                    label: 'Pages Printed This Month',
+                    data: [{{ monthly_chart_data.bw_pages }}, {{ monthly_chart_data.color_pages }}],
+                    backgroundColor: ['#000000', '#FF0000'],
+                    borderColor: ['#000000', '#FF0000'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Pages Printed This Month'
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}

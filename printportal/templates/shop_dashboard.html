@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+    <div style="position: relative;">
+        <h1>{{ shop.name }} Dashboard</h1>
+        {% if current_queue_number %}
+            <div style="position: absolute; top: 0; right: 0; font-size: 48px; font-weight: bold; color: #dc3545;">
+                Queue: {{ current_queue_number }}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Button to view monthly stats -->
+    <div class="mb-3">
+        <a href="{{ url_for('printshops.monthly_stats', shop_id=shop.id) }}" class="btn btn-info">View Monthly Stats</a>
+    </div>
+
+    <!-- File Requests Table -->
+    <h3>File Requests</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Queue #</th>
+                <th>Files</th>
+                <th>Pages</th>
+                <th>Copies</th>
+                <th>Color</th>
+                <th>Duplex</th>
+                <th>Total Price (INR)</th>
+                <th>Notes</th>
+                <th>Scheduled At</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group_id, group in grouped_requests.items() %}
+                <tr>
+                    <td>{{ group.queue_number }}</td>
+                    <td>
+                        <ul>
+                            {% for file in group.files %}
+                                <li>{{ file.filename }} ({{ file.num_pages }} pages)</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td>{{ group.files | sum(attribute='num_pages') }}</td>
+                    <td>{{ group.copies }}</td>
+                    <td>{{ 'Yes' if group.color else 'No' }}</td>
+                    <td>{{ 'Yes' if group.duplex else 'No' }}</td>
+                    <td>{{ group.total_price }}</td>
+                    <td>{{ group.notes or 'N/A' }}</td>
+                    <td>{{ group.scheduled_at.strftime('%Y-%m-%d %H:%M') if group.scheduled_at else 'N/A' }}</td>
+                    <td>{{ group.status }}</td>
+                    <td>
+                        {% for file in group.files %}
+                            <a href="{{ url_for('printshops.download_file', file_id=file.id) }}" class="btn btn-sm btn-primary">Download {{ file.filename }}</a>
+                        {% endfor %}
+                        <a href="{{ url_for('printshops.update_status', file_id=group.files[0].id, status='printed') }}" class="btn btn-sm btn-success">Mark Printed</a>
+                        <a href="{{ url_for('printshops.update_status', file_id=group.files[0].id, status='rejected') }}" class="btn btn-sm btn-danger">Reject</a>
+                        <button class="btn btn-sm btn-warning" onclick="markDone('{{ group_id }}')">Done</button>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        function markDone(requestGroupId) {
+            fetch(`/mark_done/${requestGroupId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'completed') {
+                    location.reload();
+                }
+            })
+            .catch(error => console.error('Error marking as done:', error));
+        }
+    </script>
+{% endblock %}

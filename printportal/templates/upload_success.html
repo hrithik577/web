@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Upload Successful</h1>
+    <p>Your files have been sent to the print shop.</p>
+    <p><strong>Queue Number:</strong> {{ queue_number }}</p>
+    <p><strong>Total Price:</strong> ₹{{ total_price }}</p>
+    <div id="timer">
+        <p>Estimated time remaining: <span id="time-remaining"></span></p>
+    </div>
+    <div id="completed" style="display: none;">
+        <p>Printing completed!</p>
+    </div>
+    <div id="bill" style="display: none;">
+        <h3>Bill</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Quantity</th>
+                    <th>Price (₹)</th>
+                </tr>
+            </thead>
+            <tbody id="bill-details">
+            </tbody>
+        </table>
+    </div>
+    <a href="{{ url_for('home') }}" class="btn btn-primary">Back to Home</a>
+
+    <script>
+        let duration = {{ timer_duration }}; // Duration in seconds
+        let endTime = Date.now() + duration * 1000;
+        const requestGroupId = "{{ request_group_id }}";
+
+        function updateTimer() {
+            let now = Date.now();
+            let timeLeft = Math.max(0, Math.floor((endTime - now) / 1000));
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            document.getElementById('time-remaining').textContent = `${minutes}m ${seconds}s`;
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                document.getElementById('timer').style.display = 'none';
+                document.getElementById('completed').style.display = 'block';
+            }
+        }
+
+        // Update timer every second
+        let timerInterval = setInterval(updateTimer, 1000);
+        updateTimer();
+
+        // Poll server to check if printing is marked as done and fetch bill
+        function checkPrintStatus() {
+            fetch(`/mark_done/${requestGroupId}`, { method: 'GET' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'completed') {
+                        clearInterval(timerInterval);
+                        document.getElementById('timer').style.display = 'none';
+                        document.getElementById('completed').style.display = 'block';
+                        document.getElementById('bill').style.display = 'block';
+                        // Populate bill details
+                        let billDetails = document.getElementById('bill-details');
+                        billDetails.innerHTML = '';
+                        data.bill.forEach(item => {
+                            let row = `<tr>
+                                <td>${item.filename}</td>
+                                <td>${item.copies}</td>
+                                <td>₹${item.price}</td>
+                            </tr>`;
+                            billDetails.innerHTML += row;
+                        });
+                    }
+                })
+                .catch(error => console.error('Error checking print status:', error));
+        }
+
+        // Check status every 5 seconds
+        setInterval(checkPrintStatus, 5000);
+    </script>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Upload Files for {{ shop_code }}</h1>
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.files.label }}<br>
+            {{ form.files(class="form-control", multiple=True) }}
+            {% for error in form.files.errors %}
+                <span class="text-danger">{{ error }}</span><br>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.copies.label }}<br>
+            {{ form.copies(class="form-control") }}
+            {% for error in form.copies.errors %}
+                <span class="text-danger">{{ error }}</span><br>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.color.label }} {{ form.color() }}
+        </div>
+        <div class="mb-3">
+            {{ form.duplex.label }} {{ form.duplex() }}
+        </div>
+        <div class="mb-3">
+            {{ form.notes.label }}<br>
+            {{ form.notes(class="form-control") }}
+            {% for error in form.notes.errors %}
+                <span class="text-danger">{{ error }}</span><br>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.scheduled_at.label }}<br>
+            {{ form.scheduled_at(class="form-control") }}
+            {% for error in form.scheduled_at.errors %}
+                <span class="text-danger">{{ error }}</span><br>
+            {% endfor %}
+        </div>
+        {{ form.submit(class="btn btn-primary") }}
+    </form>
+{% endblock %}
